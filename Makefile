@@ -27,6 +27,7 @@ format:
 lint:
 	python -m ufmt check $(SOURCES)
 	python -m flake8 $(SOURCES)
+	python -m checkdeps checkdeps --allow-names checkdeps
 	mypy --strict checkdeps
 
 .PHONY: release
@@ -34,3 +35,7 @@ release:
 	rm -rf dist
 	python setup.py sdist bdist_wheel
 	twine upload dist/*
+
+.PHONY: checkdeps
+checkdeps:
+	python -m checkdeps checkdeps --allow-names checkdeps --requirements requirements.txt
