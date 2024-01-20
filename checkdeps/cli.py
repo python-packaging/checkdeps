@@ -12,6 +12,7 @@ from .distinfo import iter_all_distinfo_dirs, iter_distinfo_dirs
 from .distinfo_inference import analyze, iterparents
 
 from .import_parser import get_imports
+from .metadata import get_metadata_requirement_names
 from .requirements import iter_glob_all_requirement_names
 
 STDLIB_MODULE_NAMES = stdlib_module_names()  # for the running version only
@@ -24,6 +25,12 @@ STDLIB_MODULE_NAMES = stdlib_module_names()  # for the running version only
     help="Patterns for finding files from which to read requirements (comma-separated)",
     show_default=True,
 )
+@click.option("--metadata-extras", help="Names of extras to consider (comma-separated")
+@click.option(
+    "--no-metadata",
+    is_flag=True,
+    help="Read deps from requirements instead of metadata",
+)
 @click.option("--verbose", "-v", is_flag=True, help="Show more logging")
 @click.option("--installed-path", help="Where to look for distinfo if not sys.path")
 @click.option(
@@ -33,6 +40,9 @@ STDLIB_MODULE_NAMES = stdlib_module_names()  # for the running version only
 @click.option(
     "--missing-projects-only", is_flag=True, help="Show names of missing projects only"
 )
+@click.option(
+    "--excludes", help="Comma-separated gitignore-style paths to exclude from checking"
+)
 @click.argument("target_dir")
 def main(
     requirements: str,
@@ -41,12 +51,22 @@ def main(
     allow_names: Optional[str],
     verbose: bool,
     missing_projects_only: bool,
+    no_metadata: bool,
+    metadata_extras: Optional[str],
+    excludes: Optional[str],
 ) -> None:
     available_names: Dict[str, Optional[str]] = {}
     requirement_names: Set[Optional[str]] = {None}
 
     # Part 1
-    requirement_names = set(iter_glob_all_requirement_names(requirements))
+    if no_metadata:
+        requirement_names = set(iter_glob_all_requirement_names(requirements))
+    else:
+        metadata_requirements = get_metadata_requirement_names(Path())
+        requirement_names |= set(metadata_requirements.get("", ()))
+        if metadata_extras:
+            for extra in metadata_extras.split(","):
+                requirement_names |= set(metadata_requirements.get(extra.strip(), ()))
 
     # Part 2
     if not installed_path:
@@ -67,7 +87,9 @@ def main(
 
     # Part 3
     missing_projects: Set[str] = set()
-    for path in trailrunner.walk(Path(target_dir)):
+    for path in trailrunner.walk(
+        Path(target_dir), excludes=(excludes.split(",") if excludes else None)
+    ):
         if verbose:
             print(f"{path.as_posix()}:")
         imports = get_imports(path)

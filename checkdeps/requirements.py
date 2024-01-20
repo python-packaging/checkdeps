@@ -36,6 +36,7 @@ def iter_requirement_names(path: Path) -> Iterator[str]:
 def iter_glob_all_requirement_names(comma_separated_patterns: str) -> Iterator[str]:
     for pattern in comma_separated_patterns.split(","):
         if pattern:
+            # TODO pass root_dir to pattern
             for filename in sorted(glob(pattern)):
                 # We can't just use Path.glob because you mgiht pass
                 # 'reqs/*.txt' and this is considered a non-relative pattern.

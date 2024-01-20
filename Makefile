@@ -27,7 +27,6 @@ format:
 lint:
 	python -m ufmt check $(SOURCES)
 	python -m flake8 $(SOURCES)
-	python -m checkdeps --allow-names checkdeps checkdeps
 	mypy --strict --non-interactive checkdeps
 
 .PHONY: release
@@ -38,4 +37,4 @@ release:
 
 .PHONY: checkdeps
 checkdeps:
-	python -m checkdeps checkdeps --allow-names checkdeps
+	python -m checkdeps checkdeps --allow-names checkdeps,tomllib

@@ -53,7 +53,7 @@ from baz import fromimport
                 output,
             )
 
-            (pd / "requirements.txt").write_text("click==9\n")
+            (pd / "requirements.txt").write_text("click==9\n# comment\n")
             runner = CliRunner()
             result = runner.invoke(
                 main, [f"--requirements={d}/requirements.txt", "--verbose", d]
