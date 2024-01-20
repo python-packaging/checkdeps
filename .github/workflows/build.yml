@@ -10,7 +10,7 @@ on:
   pull_request:
 
 jobs:
-  checkreqs:
+  checkdeps:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -34,3 +34,5 @@ jobs:
         run: make test
       - name: Lint
         run: make lint
+      - name: Checkdeps
+        run: make checkdeps

@@ -1,3 +1,4 @@
+import os
 import re
 import tempfile
 
@@ -27,7 +28,9 @@ from baz import fromimport
             (pd / "requirements.txt").write_text("")
 
             runner = CliRunner()
-            result = runner.invoke(main, [f"--requirements={d}/requirements.txt", d])
+            result = runner.invoke(
+                main, [f"--requirements={d}/requirements.txt", "--no-metadata", d]
+            )
             output = MOD_RE.sub("[TEMPDIR]/mod", result.output)
             self.assertEqual(
                 """\
@@ -41,7 +44,12 @@ from baz import fromimport
             runner = CliRunner()
             result = runner.invoke(
                 main,
-                [f"--requirements={d}/requirements.txt", "--missing-projects-only", d],
+                [
+                    f"--requirements={d}/requirements.txt",
+                    "--missing-projects-only",
+                    "--no-metadata",
+                    d,
+                ],
             )
             output = MOD_RE.sub("[TEMPDIR]/mod", result.output)
             self.assertEqual(
@@ -56,7 +64,13 @@ from baz import fromimport
             (pd / "requirements.txt").write_text("click==9\n# comment\n")
             runner = CliRunner()
             result = runner.invoke(
-                main, [f"--requirements={d}/requirements.txt", "--verbose", d]
+                main,
+                [
+                    f"--requirements={d}/requirements.txt",
+                    "--no-metadata",
+                    "--verbose",
+                    d,
+                ],
             )
             output = MOD_RE.sub("[TEMPDIR]/mod", result.output)
             self.assertEqual(
@@ -66,6 +80,49 @@ from baz import fromimport
 [TEMPDIR]/mod/foo.py uses baz.fromimport but there is nothing installed to provide it
   click available from ['click']
   sys stdlib
+""",
+                output,
+            )
+
+    def test_metadata(self) -> None:
+        with tempfile.TemporaryDirectory() as d:
+            pd = Path(d).resolve()
+            (pd / "mod").mkdir()
+            (pd / "mod" / "foo.py").write_text(
+                """\
+import sys
+import bar
+import click
+from baz import fromimport
+"""
+            )
+            (pd / "pyproject.toml").write_text("[project]\n")
+
+            runner = CliRunner()
+            os.chdir(pd)  # TODO wish this wasn't required
+            result = runner.invoke(main, [d])
+            output = MOD_RE.sub("[TEMPDIR]/mod", result.output)
+            self.assertEqual(
+                """\
+[TEMPDIR]/mod/foo.py uses bar but there is nothing installed to provide it
+[TEMPDIR]/mod/foo.py uses baz.fromimport but there is nothing installed to provide it
+[TEMPDIR]/mod/foo.py uses click but 'click' not in requirements
+""",
+                output,
+            )
+
+            (pd / "pyproject.toml").write_text(
+                "[project]\ndependencies = ['click', 'bar']"
+            )
+
+            runner = CliRunner()
+            os.chdir(pd)  # TODO wish this wasn't required
+            result = runner.invoke(main, [d])
+            output = MOD_RE.sub("[TEMPDIR]/mod", result.output)
+            self.assertEqual(
+                """\
+[TEMPDIR]/mod/foo.py uses bar but there is nothing installed to provide it
+[TEMPDIR]/mod/foo.py uses baz.fromimport but there is nothing installed to provide it
 """,
                 output,
             )
