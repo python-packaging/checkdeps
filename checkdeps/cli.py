@@ -50,12 +50,12 @@ def main(
 
     # Part 2
     if not installed_path:
-        for (p, v, d) in iter_all_distinfo_dirs():
+        for p, v, d in iter_all_distinfo_dirs():
             dist = analyze(d)
             for name in dist.minimal_names:
                 available_names[name] = p
     else:  # pragma: no cover
-        for (p, v, d) in iter_distinfo_dirs(Path(installed_path)):
+        for p, v, d in iter_distinfo_dirs(Path(installed_path)):
             dist = analyze(d)
             for name in dist.minimal_names:
                 available_names[name] = p

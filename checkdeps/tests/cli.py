@@ -19,42 +19,44 @@ class CliTest(unittest.TestCase):
             (pd / "mod" / "foo.py").write_text(
                 """\
 import sys
-import click
-import black
 import bar
+import click
 from baz import fromimport
 """
             )
+            (pd / "requirements.txt").write_text("")
 
             runner = CliRunner()
-            result = runner.invoke(main, ["--requirements=requirements.txt", d])
+            result = runner.invoke(main, [f"--requirements={d}/requirements.txt", d])
             output = MOD_RE.sub("[TEMPDIR]/mod", result.output)
             self.assertEqual(
                 """\
 [TEMPDIR]/mod/foo.py uses bar but there is nothing installed to provide it
 [TEMPDIR]/mod/foo.py uses baz.fromimport but there is nothing installed to provide it
-[TEMPDIR]/mod/foo.py uses black but 'black' not in requirements
+[TEMPDIR]/mod/foo.py uses click but 'click' not in requirements
 """,
                 output,
             )
 
             runner = CliRunner()
             result = runner.invoke(
-                main, ["--requirements=requirements.txt", "--missing-projects-only", d]
+                main,
+                [f"--requirements={d}/requirements.txt", "--missing-projects-only", d],
             )
             output = MOD_RE.sub("[TEMPDIR]/mod", result.output)
             self.assertEqual(
                 """\
 [TEMPDIR]/mod/foo.py uses bar but there is nothing installed to provide it
 [TEMPDIR]/mod/foo.py uses baz.fromimport but there is nothing installed to provide it
-['black']
+['click']
 """,
                 output,
             )
 
+            (pd / "requirements.txt").write_text("click==9\n")
             runner = CliRunner()
             result = runner.invoke(
-                main, ["--requirements=requirements.txt", "--verbose", d]
+                main, [f"--requirements={d}/requirements.txt", "--verbose", d]
             )
             output = MOD_RE.sub("[TEMPDIR]/mod", result.output)
             self.assertEqual(
@@ -62,8 +64,6 @@ from baz import fromimport
 [TEMPDIR]/mod/foo.py:
 [TEMPDIR]/mod/foo.py uses bar but there is nothing installed to provide it
 [TEMPDIR]/mod/foo.py uses baz.fromimport but there is nothing installed to provide it
-[TEMPDIR]/mod/foo.py uses black but 'black' not in requirements
-  black available from ['black']
   click available from ['click']
   sys stdlib
 """,
