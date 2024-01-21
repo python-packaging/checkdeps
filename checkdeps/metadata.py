@@ -11,9 +11,9 @@ from pathlib import Path
 from typing import Dict, Generator, Sequence
 
 try:
-    from tomllib import load
+    from tomllib import loads as toml_loads
 except ImportError:
-    from toml import load
+    from toml import loads as toml_loads  # type: ignore
 from packaging.requirements import Requirement
 from packaging.utils import canonicalize_name
 
@@ -56,7 +56,7 @@ def get_metadata_requirements(target_dir: Path) -> Dict[str, Sequence[Requiremen
 
     pyproject_toml = target_dir / "pyproject.toml"
     if pyproject_toml.exists():
-        doc = load(pyproject_toml)
+        doc = toml_loads(pyproject_toml.read_text())
 
         project = doc.get("project", {})
         deps = project.get("dependencies")
