@@ -22,7 +22,7 @@ STDLIB_MODULE_NAMES = stdlib_module_names()  # for the running version only
 @click.option(
     "--requirements",
     default="requirements*.txt",
-    help="Patterns for finding files from which to read requirements (comma-separated)",
+    help="Patterns for finding files from which to read requirements (comma-separated), if using --no-metadata mode",
     show_default=True,
 )
 @click.option("--metadata-extras", help="Names of extras to consider (comma-separated")
@@ -32,7 +32,16 @@ STDLIB_MODULE_NAMES = stdlib_module_names()  # for the running version only
     help="Read deps from requirements instead of metadata",
 )
 @click.option("--verbose", "-v", is_flag=True, help="Show more logging")
-@click.option("--installed-path", help="Where to look for distinfo if not sys.path")
+@click.option(
+    "--installed-path",
+    help="Where to look for distinfo if not sys.path",
+    type=click.Path(exists=True, file_okay=False, path_type=Path),
+)
+@click.option(
+    "--project-root",
+    help="Override automatic root detection -- where you could pip install . and have it work.",
+    type=click.Path(exists=True, file_okay=False, path_type=Path),
+)
 @click.option(
     "--allow-names",
     help="Minimal names to consider satisfied, such as the current project top-level name (comma-separated)",
@@ -43,11 +52,12 @@ STDLIB_MODULE_NAMES = stdlib_module_names()  # for the running version only
 @click.option(
     "--excludes", help="Comma-separated gitignore-style paths to exclude from checking"
 )
-@click.argument("target_dir")
+@click.argument("target_dir", type=click.Path(exists=True, path_type=Path))
 def main(
     requirements: str,
-    target_dir: str,
-    installed_path: str,
+    target_dir: Path,
+    installed_path: Optional[Path],
+    project_root: Optional[Path],
     allow_names: Optional[str],
     verbose: bool,
     missing_projects_only: bool,
@@ -58,11 +68,17 @@ def main(
     available_names: Dict[str, Optional[str]] = {}
     requirement_names: Set[Optional[str]] = {None}
 
+    # Part 0
+    if project_root is None:
+        project_root = trailrunner.project_root(target_dir)
+
     # Part 1
     if no_metadata:
-        requirement_names = set(iter_glob_all_requirement_names(requirements))
+        requirement_names = set(
+            iter_glob_all_requirement_names(requirements, project_root)
+        )
     else:
-        metadata_requirements = get_metadata_requirement_names(Path())
+        metadata_requirements = get_metadata_requirement_names(project_root)
         requirement_names |= set(metadata_requirements.get("", ()))
         if metadata_extras:
             for extra in metadata_extras.split(","):

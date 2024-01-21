@@ -13,7 +13,7 @@ from typing import Dict, Generator, Sequence
 try:
     from tomllib import loads as toml_loads
 except ImportError:
-    from toml import loads as toml_loads  # type: ignore
+    from toml import loads as toml_loads  # type: ignore[assignment,unused-ignore]
 from packaging.requirements import Requirement
 from packaging.utils import canonicalize_name
 

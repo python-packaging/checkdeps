@@ -33,11 +33,12 @@ def iter_requirement_names(path: Path) -> Iterator[str]:
         yield canonicalize_name(req.name)
 
 
-def iter_glob_all_requirement_names(comma_separated_patterns: str) -> Iterator[str]:
+def iter_glob_all_requirement_names(
+    comma_separated_patterns: str, root_dir: Path
+) -> Iterator[str]:
     for pattern in comma_separated_patterns.split(","):
         if pattern:
-            # TODO pass root_dir to pattern
-            for filename in sorted(glob(pattern)):
+            for filename in sorted(glob(pattern, root_dir=root_dir)):
                 # We can't just use Path.glob because you mgiht pass
                 # 'reqs/*.txt' and this is considered a non-relative pattern.
-                yield from iter_requirement_names(Path(filename))
+                yield from iter_requirement_names(root_dir / filename)

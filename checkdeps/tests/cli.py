@@ -1,4 +1,3 @@
-import os
 import re
 import tempfile
 
@@ -16,6 +15,7 @@ class CliTest(unittest.TestCase):
     def test_basic(self) -> None:
         with tempfile.TemporaryDirectory() as d:
             pd = Path(d).resolve()
+            (pd / ".git").mkdir()  # for automatic project_root
             (pd / "mod").mkdir()
             (pd / "mod" / "foo.py").write_text(
                 """\
@@ -29,7 +29,7 @@ from baz import fromimport
 
             runner = CliRunner()
             result = runner.invoke(
-                main, [f"--requirements={d}/requirements.txt", "--no-metadata", d]
+                main, ["--requirements=requirements.txt", "--no-metadata", d]
             )
             output = MOD_RE.sub("[TEMPDIR]/mod", result.output)
             self.assertEqual(
@@ -45,7 +45,7 @@ from baz import fromimport
             result = runner.invoke(
                 main,
                 [
-                    f"--requirements={d}/requirements.txt",
+                    "--requirements=requirements.txt",
                     "--missing-projects-only",
                     "--no-metadata",
                     d,
@@ -66,7 +66,7 @@ from baz import fromimport
             result = runner.invoke(
                 main,
                 [
-                    f"--requirements={d}/requirements.txt",
+                    "--requirements=requirements.txt",
                     "--no-metadata",
                     "--verbose",
                     d,
@@ -99,7 +99,6 @@ from baz import fromimport
             (pd / "pyproject.toml").write_text("[project]\n")
 
             runner = CliRunner()
-            os.chdir(pd)  # TODO wish this wasn't required
             result = runner.invoke(main, [d])
             output = MOD_RE.sub("[TEMPDIR]/mod", result.output)
             self.assertEqual(
@@ -116,7 +115,6 @@ from baz import fromimport
             )
 
             runner = CliRunner()
-            os.chdir(pd)  # TODO wish this wasn't required
             result = runner.invoke(main, [d])
             output = MOD_RE.sub("[TEMPDIR]/mod", result.output)
             self.assertEqual(

@@ -31,6 +31,12 @@ checkdeps/cli.py:
 
 Exits nonzero if there are any issues.
 
+# But what if I don't want to run it from the same venv
+
+Make sure you specify `--installed-path` to the site-packages dir and run from the same
+python version.  A parent of your `target_dir` should be obviously the root of your
+project (`pyproject.toml`, `.git`, etc), which is what the `requirements` are relative to.
+
 # But aren't there projects that do this already?
 
 I've looked at them, and I don't like the assumptions they make about top-level
