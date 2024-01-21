@@ -27,7 +27,7 @@ format:
 lint:
 	python -m ufmt check $(SOURCES)
 	python -m flake8 $(SOURCES)
-	mypy --strict --non-interactive checkdeps
+	mypy --strict --install-types --non-interactive -p checkdeps
 
 .PHONY: release
 release:
