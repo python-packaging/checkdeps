@@ -1,7 +1,8 @@
 """
-This is a low-deps simplified version of dowsing that only supports pep 621
-and setup.cfg metadata for requirements.  There's probably a need for dowsing-lite (or
-making dowsing itself the lite version) as well as performing automated edits.
+This is a low-deps simplified version of dowsing that only supports pep 621,
+flit, poetry, and setup.cfg metadata for requirements.  There's probably a need
+for dowsing-lite (or making dowsing itself the lite version) as well as
+performing automated edits.
 """
 
 import logging
@@ -83,6 +84,12 @@ def get_metadata_requirements(target_dir: Path) -> Dict[str, Sequence[Requiremen
             .items()
         ):
             ret[k] = [Requirement(i) for i in v]
+
+        # Poetry
+        deps = doc.get("tool", {}).get("poetry", {}).get("dependencies", {})
+        if deps:
+            ret[""] = [Requirement(i) for i in deps]
+        # TODO tool.poetry.group.dev.dependencies
 
     return ret
 
