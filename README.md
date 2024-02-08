@@ -15,16 +15,16 @@ $ python -m checkdeps checkdeps
 # If you use non-relative imports for your own project's code, also add
 $ python -m checkdeps checkdeps --allow-names checkdeps
 
-# For humans, pass -v
-$ python -m checkdeps -v checkdeps/cli.py
+# For humans, pass --details
+$ python -m checkdeps --details checkdeps/cli.py
 checkdeps/cli.py:
-  click available from ['click']
+checkdeps/cli.py:
+  click available from 'click'
+  logging stdlib
   pathlib.Path stdlib
-  stdlibs.stdlib_module_names available from ['stdlibs']
+  stdlibs.stdlib_module_names available from 'stdlibs'
   sys stdlib
-  trailrunner available from ['trailrunner']
-  typing.Dict stdlib
-  typing.List stdlib
+  trailrunner available from 'trailrunner'
   typing.Optional stdlib
   typing.Set stdlib
 ```
@@ -45,7 +45,6 @@ more self-contained.
 
 # Future work
 
-* Read project metadata instead of requirements
 * Ensure metadata and requirements match
 * Offer to add missing deps
 * Better handling of version-dependent deps in an `if` or `try`/`except`

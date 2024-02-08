@@ -4,6 +4,8 @@ and setup.cfg metadata for requirements.  There's probably a need for dowsing-li
 making dowsing itself the lite version) as well as performing automated edits.
 """
 
+import logging
+
 # TODO consider using imperfect and tomlkit if someday this might have a --fix
 # type option
 from configparser import ConfigParser, NoOptionError, NoSectionError
@@ -17,8 +19,11 @@ except ImportError:
 from packaging.requirements import Requirement
 from packaging.utils import canonicalize_name
 
+LOG = logging.getLogger(__name__)
+
 
 def handle_multiline(s: str) -> Generator[Requirement, None, None]:
+    LOG.debug("handle_multiline: %r", s)
     for line in s.splitlines():
         line = line.split("#", 1)[0].strip()
         if not line:
@@ -58,11 +63,25 @@ def get_metadata_requirements(target_dir: Path) -> Dict[str, Sequence[Requiremen
     if pyproject_toml.exists():
         doc = toml_loads(pyproject_toml.read_text())
 
+        # PEP 621
         project = doc.get("project", {})
         deps = project.get("dependencies")
         if deps:
             ret[""] = [Requirement(i) for i in deps]
         for k, v in project.get("optional-dependencies", {}).items():
+            ret[k] = [Requirement(i) for i in v]
+
+        # Flit
+        deps = doc.get("tool", {}).get("flit", {}).get("metadata", {}).get("requires")
+        if deps:
+            ret[""] = [Requirement(i) for i in deps]
+        for k, v in (
+            doc.get("tool", {})
+            .get("flit", {})
+            .get("metadata", {})
+            .get("requires-extra", {})
+            .items()
+        ):
             ret[k] = [Requirement(i) for i in v]
 
     return ret

@@ -12,6 +12,7 @@ from typing import Generator, Tuple
 from packaging.utils import canonicalize_name
 
 DISTINFO_RE = re.compile(r"([^-]+)-(.*?)\.dist-info$")
+EGGINFO_RE = re.compile(r"([^-]+)-([^-]+)-([^-]+)\.egg-info$")
 
 
 def iter_all_distinfo_dirs() -> Generator[Tuple[str, str, Path], None, None]:
@@ -23,11 +24,22 @@ def iter_all_distinfo_dirs() -> Generator[Tuple[str, str, Path], None, None]:
 
 def iter_distinfo_dirs(path: Path) -> Generator[Tuple[str, str, Path], None, None]:
     for subdir in path.iterdir():
+        # TODO .pth files?
         if subdir.name.endswith(".dist-info") and subdir.is_dir():
             m = DISTINFO_RE.match(subdir.name)
             if not m:  # pragma: no cover
                 continue
             (project, version) = m.groups()
+
+            # Change from underscores to dashes
+            project = canonicalize_name(project)
+
+            yield project, version, subdir
+        elif subdir.name.endswith(".egg-info") and subdir.is_dir():
+            m = EGGINFO_RE.match(subdir.name)
+            if not m:  # pragma: no cover
+                continue
+            (project, version, pyver) = m.groups()
 
             # Change from underscores to dashes
             project = canonicalize_name(project)
