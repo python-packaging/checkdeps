@@ -68,7 +68,7 @@ from baz import fromimport
                 [
                     "--requirements=requirements.txt",
                     "--no-metadata",
-                    "--verbose",
+                    "--details",
                     d,
                 ],
             )
@@ -78,7 +78,7 @@ from baz import fromimport
 [TEMPDIR]/mod/foo.py:
 [TEMPDIR]/mod/foo.py uses bar but there is nothing installed to provide it
 [TEMPDIR]/mod/foo.py uses baz.fromimport but there is nothing installed to provide it
-  click available from ['click']
+  click available from 'click'
   sys stdlib
 """,
                 output,

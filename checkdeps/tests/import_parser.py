@@ -16,6 +16,9 @@ import a.b
 from a.b.c import z
 from . import x  # relative imports are not parsed
 from .x import y
+
+def func():
+    import d
 """
             )
-            self.assertEqual({"a", "a.b", "a.b.c.z"}, get_imports(pd / "foo.py"))
+            self.assertEqual({"a", "a.b", "a.b.c.z", "d"}, get_imports(pd / "foo.py"))
