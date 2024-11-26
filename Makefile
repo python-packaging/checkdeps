@@ -1,9 +1,18 @@
 PYTHON?=python
 SOURCES=checkdeps setup.py
 
+UV:=$(shell uv --version)
+ifdef UV
+	VENV:=uv venv
+	PIP:=uv pip
+else
+	VENV:=python -m venv
+	PIP:=python -m pip
+endif
+
 .PHONY: venv
 venv:
-	$(PYTHON) -m venv .venv
+	$(VENV) .venv
 	source .venv/bin/activate && make setup
 	@echo 'run `source .venv/bin/activate` to use virtualenv'
 
@@ -12,7 +21,7 @@ venv:
 
 .PHONY: setup
 setup:
-	python -m pip install -Ue .[dev,test]
+	$(PIP) install -Ue .[dev,test]
 
 .PHONY: test
 test:
@@ -21,13 +30,15 @@ test:
 
 .PHONY: format
 format:
-	python -m ufmt format $(SOURCES)
+	ruff format
+	ruff check --fix
 
 .PHONY: lint
 lint:
-	python -m ufmt check $(SOURCES)
-	python -m flake8 $(SOURCES)
-	mypy --strict --install-types --non-interactive -p checkdeps
+	ruff check $(SOURCES)
+	python -m checkdeps --allow-names checkdeps,toml checkdeps
+	$(PIP) install types-toml
+	mypy --strict --non-interactive checkdeps
 
 .PHONY: release
 release:
