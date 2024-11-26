@@ -38,7 +38,7 @@ lint:
 	ruff check $(SOURCES)
 	python -m checkdeps --allow-names checkdeps,toml checkdeps
 	$(PIP) install types-toml
-	mypy --strict --non-interactive checkdeps
+	mypy --strict checkdeps
 
 .PHONY: release
 release:
