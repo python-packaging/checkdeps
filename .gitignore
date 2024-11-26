@@ -105,3 +105,9 @@ venv.bak/
 
 # Visual Studio Code
 .vscode/
+
+# Vim swapfiles
+*.sw[op]
+
+# Setuptools-scm
+_version.py
